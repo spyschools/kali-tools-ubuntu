@@ -2,82 +2,111 @@
 
 set -e
 
-echo "[*] Mulai instalasi semua tools dengan hak akses root..."
+echo "[*] Mulai instalasi tools di Ubuntu 24.04.3 (root required)"
+if [[ $EUID -ne 0 ]]; then
+   echo "[-] Harus dijalankan sebagai root (sudo)" 
+   exit 1
+fi
 
-# Update dan install dependencies dasar
-sudo apt update
-sudo apt install -y git python3 python3-pip python3-venv curl wget ruby golang-go openjdk-17-jre \
-  nmap hydra nikto sqlmap john aircrack-ng wireshark dirbuster httrack zenmap openssh-client openssl \
-  sslscan sslsplit sslh amap armitage wapiti seclists set
+apt update
+apt install -y git python3 python3-pip python3-venv curl wget ruby golang-go \
+  nmap hydra nikto sqlmap john aircrack-ng wireshark \
+  dirbuster httrack zenmap openssl sslscan sslsplit sslh openjdk-17-jre amap wapiti
 
-# Install beef-xss
+# Beberapa tools sudah tersedia di apt
+echo "[*] Tools via apt sudah diinstall"
+
+# Beef-xss
 if [ ! -d /opt/beef ]; then
-  sudo git clone https://github.com/beefproject/beef.git /opt/beef
+  git clone https://github.com/beefproject/beef.git /opt/beef
   cd /opt/beef
-  sudo ./install
+  ./install
+  cd -
 else
-  echo "[*] beef-xss sudah terinstall di /opt/beef."
+  echo "[*] Beef-xss sudah terinstall"
 fi
 
-# Install exploitdb
+# Exploitdb
 if [ ! -d /opt/exploitdb ]; then
-  sudo git clone https://gitlab.com/exploit-database/exploitdb.git /opt/exploitdb
-  sudo ln -sf /opt/exploitdb/searchsploit /usr/local/bin/searchsploit
+  git clone https://gitlab.com/exploit-database/exploitdb.git /opt/exploitdb
+  ln -sf /opt/exploitdb/searchsploit /usr/local/bin/searchsploit
+else
+  echo "[*] Exploitdb sudah terinstall"
 fi
 
-# Install h8mail via pip (root)
-sudo pip3 install h8mail
+# h8mail via pip user (root disarankan instal global)
+pip3 install h8mail
 
-# Install paramspider
+# ParamSpider
 if [ ! -d /opt/paramspider ]; then
-  sudo git clone https://github.com/devanshbatham/ParamSpider.git /opt/paramspider
-  sudo pip3 install -r /opt/paramspider/requirements.txt
+  git clone https://github.com/devanshbatham/ParamSpider.git /opt/paramspider
+  pip3 install -r /opt/paramspider/requirements.txt
+else
+  echo "[*] ParamSpider sudah terinstall"
 fi
 
-# Install hakrawler
-sudo -H -u $(logname) bash -c "go install github.com/hakluke/hakrawler@latest"
+# Hakrawler via go install
+if ! command -v hakrawler &> /dev/null; then
+  sudo -u $(logname) env PATH=$PATH go install github.com/hakluke/hakrawler@latest
+else
+  echo "[*] Hakrawler sudah terinstall"
+fi
 
-# Install spiderfoot
-sudo pip3 install spiderfoot
+# Spiderfoot via pip
+pip3 install spiderfoot
 
-# Install waybackpy
-sudo pip3 install waybackpy
+# Waybackpy via pip
+pip3 install waybackpy
 
-# Install eyewitness
+# Eyewitness
 if [ ! -d /opt/eyewitness ]; then
-  sudo git clone https://github.com/FortyNorthSecurity/EyeWitness.git /opt/eyewitness
+  git clone https://github.com/FortyNorthSecurity/EyeWitness.git /opt/eyewitness
+else
+  echo "[*] Eyewitness sudah terinstall"
 fi
 
-# Install getsploit
+# Getsploit
 if [ ! -d /opt/getsploit ]; then
-  sudo git clone https://github.com/1N3/getsploit.git /opt/getsploit
+  git clone https://github.com/1N3/getsploit.git /opt/getsploit
+else
+  echo "[*] Getsploit sudah terinstall"
 fi
 
-# Install metagoofil
+# Metagoofil
 if [ ! -d /opt/metagoofil ]; then
-  sudo git clone https://github.com/laramies/metagoofil.git /opt/metagoofil
-  sudo pip3 install -r /opt/metagoofil/requirements.txt
+  git clone https://github.com/laramies/metagoofil.git /opt/metagoofil
+  pip3 install -r /opt/metagoofil/requirements.txt
+else
+  echo "[*] Metagoofil sudah terinstall"
 fi
 
-# Install reconspider
-sudo pip3 install reconspider
+# ReconSpider via pip
+pip3 install reconspider
 
-# Install raccoon-scanner
+# Raccoon Scanner
 if [ ! -d /opt/raccoon-scanner ]; then
-  sudo git clone https://github.com/evyatarmeged/RaccoonScanner.git /opt/raccoon-scanner
+  git clone https://github.com/evyatarmeged/RaccoonScanner.git /opt/raccoon-scanner
+else
+  echo "[*] Raccoon Scanner sudah terinstall"
 fi
 
-# Install sn0int
-sudo pip3 install sn0int
+# Sn0int via pip
+pip3 install sn0int
 
-# Install email2phonenumber
-sudo pip3 install email2phonenumber
+# Email2phonenumber via pip
+pip3 install email2phonenumber
 
-# Install o-saft
+# O-saft
 if [ ! -d /opt/o-saft ]; then
-  sudo git clone https://github.com/purplefox121/OSAFT.git /opt/o-saft
-  sudo pip3 install -r /opt/o-saft/requirements.txt
+  git clone https://github.com/purplefox121/OSAFT.git /opt/o-saft
+  pip3 install -r /opt/o-saft/requirements.txt
+else
+  echo "[*] O-saft sudah terinstall"
 fi
 
-echo "[*] Instalasi selesai. Pastikan PATH ~/.local/bin sudah ada jika pakai pip user."
+# Tambah ~/.local/bin ke PATH di /etc/profile (global)
+if ! grep -q '~/.local/bin' /etc/profile; then
+  echo 'export PATH=$PATH:~/.local/bin' >> /etc/profile
+fi
 
+echo "[*] Instalasi tools selesai."
