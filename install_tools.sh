@@ -52,9 +52,6 @@ else
   echo "[*] Hakrawler sudah terinstall"
 fi
 
-# Spiderfoot via pip
-pip3 install spiderfoot
-
 # Waybackpy via pip
 pip3 install waybackpy
 
